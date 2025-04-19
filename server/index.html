@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket.IO Test Client</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            color: #2c3e50;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        pre#log {
+            background: #2d3436;
+            color: #dfe6e9;
+            padding: 15px;
+            border-radius: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔌 WebSocket Test Client</h1>
+
+        <label for="userId">User ID:</label>
+        <input type="number" id="userId" placeholder="Your ID" />
+
+        <label for="token">Token:</label>
+        <input type="text" id="token" placeholder="Token" />
+
+        <label for="role">Role:</label>
+        <select id="role">
+            <option value="MERCHANT">Merchant</option>
+            <option value="CUSTOMER">Customer</option>
+        </select>
+
+        <div class="button-group">
+            <button onclick="connectSocket()">🔗 Connect</button>
+            <button onclick="disconnectSocket()">❌ Disconnect</button>
+        </div>
+
+        <hr>
+
+        <h2>📤 Send Message</h2>
+        <input type="number" id="receiverId" placeholder="Receiver ID" />
+        <input type="text" id="messageContent" placeholder="Message" />
+        <button onclick="sendMessage()">Send Message</button>
+
+        <h2>🛍️ Send Order Broadcast</h2>
+        <textarea id="orderData" rows="4" cols="50" placeholder='Order JSON (e.g. {"items": [...]})'></textarea>
+        <button onclick="sendOrder()">Send Order</button>
+
+        <h2>👁️‍🗨️ Mark Message as Seen</h2>
+        <input type="number" id="messageId" placeholder="Message ID" />
+        <button onclick="markSeen()">Mark as Seen</button>
+
+        <hr>
+
+        <h2>📜 Log</h2>
+        <pre id="log"></pre>
+    </div>
+
+    <script>
+        let socket;
+
+        function connectSocket() {
+            const userId = parseInt(document.getElementById("userId").value);
+            const token = document.getElementById("token").value;
+            const role = document.getElementById("role").value;
+
+            socket = io("ws://localhost:8080", {
+                auth: {
+                    authorization: `Bearer ${token}`
+                },
+                // query: {
+                //     userId,
+                //     role,
+                // },
+                transports: ["websocket"]
+            });
+
+            socket.on("connect", () => log(`✅ Connected as ${userId} (${role})`));
+            socket.on("disconnect", () => log(`❌ Disconnected`));
+            socket.on("message", (msg) => log(`📩 Message received: ${JSON.stringify(msg)}`));
+            socket.on("is-message-seen", (msg) => log(`✅ Seen status updated: ${JSON.stringify(msg)}`));
+            socket.on("new-order-broadcast", (msg) => log(`🛒 New order broadcast: ${msg}`));
+            socket.on("all-online-users", (users) => log(`👥 Online users: ${users.join(", ")}`));
+        }
+
+        function disconnectSocket() {
+            if (socket) socket.disconnect();
+        }
+
+        function sendMessage() {
+            const receiverId = parseInt(document.getElementById("receiverId").value);
+            const content = document.getElementById("messageContent").value;
+
+            socket.emit("message", {
+                receiverId,
+                content,
+            });
+        }
+
+        function sendOrder() {
+            const orderDataRaw = document.getElementById("orderData").value;
+            try {
+                const orderData = JSON.parse(orderDataRaw);
+                socket.emit("new-order-broadcast", orderData);
+            } catch (err) {
+                alert("Invalid JSON");
+            }
+        }
+
+        function markSeen() {
+            const messageId = parseInt(document.getElementById("messageId").value);
+            socket.emit("is-message-seen", { messageId });
+        }
+
+        function log(msg) {
+            const el = document.getElementById("log");
+            el.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+            el.scrollTop = el.scrollHeight;
+        }
+    </script>
+</body>
+
+</html>

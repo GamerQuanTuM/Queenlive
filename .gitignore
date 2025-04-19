@@ -1,0 +1,22 @@
+# dependencies
+client/node_modules
+
+# next.js
+client/.next/
+client/out/
+
+# production
+client/build
+
+client/.env*
+
+# compiled output
+server/dist
+server/node_modules
+server/build
+
+server/.env*
+
+
+
+
