@@ -10,19 +10,28 @@ import { SocketModule } from './chat/socket.module';
 import { OrderModule } from './order/order.module';
 import { OrderProduct } from './entities/order-product/order-product.entity';
 import { Order } from './entities/orders/order.entity';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'nestuser',
-      password: 'rootpassword',
-      database: 'nestdb',
-      entities: [User, Product, Chat, OrderProduct, Order],
-      synchronize: true,
-      logging: true,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        url: config.get<string>('DATABASE_URL'),
+        entities: [User, Product, Chat, OrderProduct, Order],
+        synchronize:
+          config.get<string>('NODE_ENV') === 'production' ? false : true,
+        logging: config.get<string>('NODE_ENV') === 'production' ? false : true,
+        ssl:
+          config.get<string>('NODE_ENV') === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
+      }),
     }),
     AuthModule,
     ProductModule,
