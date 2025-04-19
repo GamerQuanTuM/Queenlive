@@ -3,12 +3,13 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserRole } from '../entities/users/user.entity';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Chat } from 'src/entities/chats/chat.entity';
 
 @Injectable()
@@ -29,7 +30,16 @@ export class AuthService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    let hashedPassword: string;
+
+    try {
+      hashedPassword = await bcrypt.hash(password, 10);
+    } catch (error) {
+      // Optional: log or rethrow
+      console.error('Hashing failed:', error);
+      throw new InternalServerErrorException('Error hashing password');
+    }
+
     const user = this.userRepository.create({
       name,
       email,
