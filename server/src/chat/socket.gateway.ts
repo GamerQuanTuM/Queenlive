@@ -17,6 +17,7 @@ import { SendMessageDto } from './dto/send-message.dto';
 import { MarkAsSeenDto } from './dto/mark-as-seen.dto';
 import { OrderService } from 'src/order/order.service';
 import { CreateOrderDto } from 'src/order/dto/create-order.dto';
+import { GetUser } from 'src/auth/roles.decorator';
 
 type AuthenticatedSocket = Socket & {
   user: {
@@ -56,12 +57,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
           console.log("Joined Customer's Room");
           await this.socketService.joinCustomersRoom(client);
         }
-        console.log('Consoling onlineUsers');
-        console.log(this.socketService.getConnectedUsers());
-        this.server.emit(
-          'all-online-users',
-          this.socketService.getConnectedUsers(),
-        );
+        // console.log('Consoling onlineUsers');
+        // console.log(this.socketService.getConnectedUsers());
+        // this.server.emit(
+        //   'all-online-users',
+        //   this.socketService.getConnectedUsers(),
+        // );
         console.log(
           `Authenticated client connected: ${client.id}, user: ${client['user'].id}`,
         );
@@ -79,12 +80,12 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (client['user']) {
       console.log(client['user']);
       this.socketService.removeUser(client?.user?.id);
-      console.log('Consoling onlineUsers');
-      console.log(this.socketService.getConnectedUsers());
-      this.server.emit(
-        'all-online-users',
-        this.socketService.getConnectedUsers(),
-      );
+      // console.log('Consoling onlineUsers');
+      // console.log(this.socketService.getConnectedUsers());
+      // this.server.emit(
+      //   'all-online-users',
+      //   this.socketService.getConnectedUsers(),
+      // );
       console.log(
         `Authenticated client disconnected: ${client.id}, user: ${client['user'].id}`,
       );
@@ -169,5 +170,20 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (receiverSocket) {
       receiverSocket.emit('stoppedTyping', { userId });
     }
+  }
+
+  @UseGuards(WsAuthGuard)
+  @SubscribeMessage('all-online-users')
+  handleGetOnlineUsers(@GetUser() user: UserType) {
+    const userSocket = this.socketService.getUserSocket(user.id);
+    console.log('Consoling onlineUsers');
+    console.log(this.socketService.getConnectedUsers());
+    if (userSocket) {
+      userSocket.emit(
+        'all-online-users',
+        this.socketService.getConnectedUsers(),
+      );
+    }
+    return this.socketService.getConnectedUsers();
   }
 }

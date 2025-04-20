@@ -40,12 +40,12 @@ const ChatUI = ({
   const [chatMessages, setChatMessages] =
     useState<ChatUserMessages[]>(initialChatMessages);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
+  // const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
   const [isTyping, setIsTyping] = useState(false);
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { user: currentUser } = useAuth();
-  const { isConnected, socket } = useSocket();
+  const { isConnected, socket, onlineUsers, setOnlineUsers } = useSocket();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -165,19 +165,19 @@ const ChatUI = ({
     };
   }, [socket]);
 
-  useEffect(() => {
-    if (!socket) return;
-    const onlineUsers = (data: any) => {
-      console.log(data);
-      setOnlineUsers(data);
-    };
+  // useEffect(() => {
+  //   if (!socket) return;
+  //   const onlineUsers = (data: any) => {
+  //     console.log(data);
+  //     setOnlineUsers(data);
+  //   };
 
-    socket.on("all-online-users", onlineUsers);
+  //   socket.on("all-online-users", onlineUsers);
 
-    return () => {
-      socket.off("all-online-users", onlineUsers);
-    };
-  }, [socket]);
+  //   return () => {
+  //     socket.off("all-online-users", onlineUsers);
+  //   };
+  // }, [socket]);
 
   const handleSendMessage = () => {
     if (
