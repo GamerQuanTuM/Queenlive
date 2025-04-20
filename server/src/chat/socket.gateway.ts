@@ -28,7 +28,7 @@ type AuthenticatedSocket = Socket & {
   };
 };
 
-@WebSocketGateway(8080, { cors: { origin: '*' } })
+@WebSocketGateway({ cors: { origin: '*' } })
 export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly socketService: SocketService,

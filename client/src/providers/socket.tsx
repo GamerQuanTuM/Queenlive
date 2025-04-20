@@ -31,7 +31,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("Attempting to connect to socket server...");
     
     const socketInstance = io(
-      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8080",
+      process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:8000",
       {
         auth: {
           authorization: `Bearer ${token}`,

@@ -132,14 +132,10 @@
             const token = document.getElementById("token").value;
             const role = document.getElementById("role").value;
 
-            socket = io("ws://localhost:8080", {
+            socket = io("ws://localhost:8000", {
                 auth: {
                     authorization: `Bearer ${token}`
                 },
-                // query: {
-                //     userId,
-                //     role,
-                // },
                 transports: ["websocket"]
             });
 
