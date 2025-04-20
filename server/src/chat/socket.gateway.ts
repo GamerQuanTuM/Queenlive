@@ -108,6 +108,14 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const receiverSocket = this.socketService.getUserSocket(receiverId);
     if (receiverSocket) {
       receiverSocket.emit('message', message);
+      // Automatically mark messages as read if receiver is connected
+      // This fixes the issue where messages aren't marked as seen automatically
+      await this.socketService.markMessagesAsRead(sender.id, receiverId);
+      // Notify sender that their messages have been read
+      const senderSocket = this.socketService.getUserSocket(sender.id);
+      if (senderSocket) {
+        senderSocket.emit('messagesRead', { readerId: receiverId });
+      }
       return message;
     }
   }

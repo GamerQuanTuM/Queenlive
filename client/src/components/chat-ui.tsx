@@ -467,7 +467,7 @@ const ChatUI = ({
 
                           {/* Read indicators for sent messages */}
                           {isSentByCurrentUser && (
-                            <div className="text-xs text-gray-400 opacity-0 group-hover:opacity-100 md:opacity-100 transition-opacity">
+                            <div className="text-xs text-gray-400">
                               {message.isRead ? (
                                 <CheckCheck
                                   size={16}
