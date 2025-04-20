@@ -165,19 +165,21 @@ const ChatUI = ({
     };
   }, [socket]);
 
-  // useEffect(() => {
-  //   if (!socket) return;
-  //   const onlineUsers = (data: any) => {
-  //     console.log(data);
-  //     setOnlineUsers(data);
-  //   };
+  useEffect(() => {
+    if (!socket || !onlineUsers) return;
+    const onlineUsersData = (data: any) => {
+      console.log(data);
+      setOnlineUsers(data);
+    };
 
-  //   socket.on("all-online-users", onlineUsers);
+    socket.on("all-online-users", onlineUsersData);
 
-  //   return () => {
-  //     socket.off("all-online-users", onlineUsers);
-  //   };
-  // }, [socket]);
+    return () => {
+      socket.off("all-online-users", onlineUsersData);
+    };
+  }, [socket]);
+
+  console.log(onlineUsers);
 
   const handleSendMessage = () => {
     if (

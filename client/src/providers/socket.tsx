@@ -1,21 +1,27 @@
 "use client";
-import { createContext, SetStateAction, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { io, Socket } from "socket.io-client";
+import { useAuth } from "./auth";
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
   onlineUsers: number[];
-  setOnlineUsers: (value: SetStateAction<number[]>) => void
+  setOnlineUsers: any;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   isConnected: false,
   onlineUsers: [],
-  setOnlineUsers: (_value: SetStateAction<number[]>) => {}
+  setOnlineUsers: (_value: SetStateAction<number[]>) => {},
 });
-
 
 export const useSocket = () => {
   return useContext(SocketContext);
@@ -26,6 +32,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<number[]>([]);
+
+  const { user } = useAuth();
 
   // Monitor token changes
   useEffect(() => {
@@ -100,6 +108,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       setIsConnected(false);
     });
 
+
     socketInstance.on("all-online-users", (users: any) => {
       console.log("All online users:", users);
       setOnlineUsers(users);
@@ -112,6 +121,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       socketInstance.disconnect();
     };
   }, [token]);
+
+  console.log(onlineUsers);
 
   return (
     <SocketContext.Provider
